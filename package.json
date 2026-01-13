@@ -1,0 +1,25 @@
+{
+  "name": "temper-cli",
+  "version": "0.1.0",
+  "description": "Homebrew for code snippets - run, search, and edit reusable code utilities",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "temper": "./bin/temper.ts"
+  },
+  "scripts": {
+    "dev": "bun run bin/temper.ts",
+    "build": "bun build --compile --minify ./bin/temper.ts --outfile dist/temper",
+    "build:all": "bun run build:linux-x64 && bun run build:linux-arm64 && bun run build:darwin-x64 && bun run build:darwin-arm64 && bun run build:windows-x64",
+    "build:linux-x64": "bun build --compile --minify --target=bun-linux-x64 ./bin/temper.ts --outfile dist/temper-linux-x64",
+    "build:linux-arm64": "bun build --compile --minify --target=bun-linux-arm64 ./bin/temper.ts --outfile dist/temper-linux-arm64",
+    "build:darwin-x64": "bun build --compile --minify --target=bun-darwin-x64 ./bin/temper.ts --outfile dist/temper-darwin-x64",
+    "build:darwin-arm64": "bun build --compile --minify --target=bun-darwin-arm64 ./bin/temper.ts --outfile dist/temper-darwin-arm64",
+    "build:windows-x64": "bun build --compile --minify --target=bun-windows-x64 ./bin/temper.ts --outfile dist/temper-windows-x64.exe",
+    "test": "bun test"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/bun": "latest"
+  }
+}
