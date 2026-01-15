@@ -1,19 +1,41 @@
 import { TemperApi } from "../lib/api";
+import { LocalSnippets } from "../lib/local";
 import { CONFIG } from "../lib/config";
 
 interface InfoOptions {
   language?: string;
+  json?: boolean;
 }
 
 export async function info(slug: string, options: InfoOptions): Promise<void> {
+  const local = new LocalSnippets();
   const api = new TemperApi();
+  const language = options.language || CONFIG.defaultLanguage;
 
-  const snippet = await api.getSnippet(slug, options.language || CONFIG.defaultLanguage);
+  // Check local first, then API
+  let snippet = await local.get(slug, language);
+  let isLocal = !!snippet;
+  let localPath: string | null = null;
+
+  if (isLocal) {
+    localPath = await local.getFilePath_public(slug, language);
+  } else {
+    snippet = await api.getSnippet(slug, language);
+  }
 
   if (!snippet) {
+    if (options.json) {
+      console.log(JSON.stringify({ error: `Snippet not found: ${slug}` }));
+      process.exit(1);
+    }
     console.error(`Snippet not found: ${slug}`);
     console.error("Try 'temper search <query>' to find available snippets.");
     process.exit(1);
+  }
+
+  if (options.json) {
+    console.log(JSON.stringify({ ...snippet, isLocal, localPath }));
+    return;
   }
 
   // Header
@@ -24,6 +46,8 @@ export async function info(slug: string, options: InfoOptions): Promise<void> {
   // Metadata
   console.log(`  Slug:      ${snippet.slug}`);
   console.log(`  Language:  ${snippet.language}`);
+  console.log(`  Source:    ${isLocal ? "local" : "api"}`);
+  if (localPath) console.log(`  File:      ${localPath}`);
   if (snippet.type) console.log(`  Type:      ${snippet.type}`);
   if (snippet.topic) console.log(`  Topic:     ${snippet.topic}`);
   if (snippet.tags?.length) console.log(`  Tags:      ${snippet.tags.join(", ")}`);

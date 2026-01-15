@@ -1,11 +1,13 @@
 import { TemperApi } from "../lib/api";
-import { executeSnippet, validateParams } from "../lib/executor";
+import { LocalSnippets } from "../lib/local";
+import { executeSnippet, validateParams, mapStdinToParams } from "../lib/executor";
 import { CONFIG } from "../lib/config";
 import type { Parameter } from "../lib/types";
 
 interface RunOptions {
   params?: Record<string, string>;
   stdin?: string;
+  json?: boolean;
 }
 
 function parseParamValue(value: string, type: Parameter["type"]): unknown {
@@ -27,12 +29,21 @@ function parseParamValue(value: string, type: Parameter["type"]): unknown {
 }
 
 export async function run(slug: string, options: RunOptions): Promise<void> {
+  const local = new LocalSnippets();
   const api = new TemperApi();
 
-  // JavaScript only
-  const snippet = await api.getSnippet(slug, CONFIG.defaultLanguage);
+  // Check local first, then API (JavaScript only for execution)
+  let snippet = await local.get(slug, CONFIG.defaultLanguage);
 
   if (!snippet) {
+    snippet = await api.getSnippet(slug, CONFIG.defaultLanguage);
+  }
+
+  if (!snippet) {
+    if (options.json) {
+      console.log(JSON.stringify({ success: false, error: `Snippet not found: ${slug}` }));
+      process.exit(1);
+    }
     console.error(`Snippet not found: ${slug}`);
     console.error("Try 'temper search <query>' to find available snippets.");
     process.exit(1);
@@ -49,9 +60,16 @@ export async function run(slug: string, options: RunOptions): Promise<void> {
     }
   }
 
-  // Validate parameters
-  const validation = validateParams(params, snippet.parameters);
+  // Map stdin to first unset parameter BEFORE validation
+  const paramsWithStdin = mapStdinToParams(params, snippet.parameters, options.stdin);
+
+  // Validate parameters (with stdin already mapped)
+  const validation = validateParams(paramsWithStdin, snippet.parameters);
   if (!validation.valid) {
+    if (options.json) {
+      console.log(JSON.stringify({ success: false, error: validation.errors.join("; ") }));
+      process.exit(1);
+    }
     console.error("Parameter errors:");
     validation.errors.forEach(e => console.error(`  - ${e}`));
     process.exit(1);
@@ -59,6 +77,28 @@ export async function run(slug: string, options: RunOptions): Promise<void> {
 
   // Execute
   const result = await executeSnippet(snippet, params, options.stdin);
+
+  if (options.json) {
+    // Silence console to prevent fire-and-forget promises from corrupting JSON output
+    const noop = () => {};
+    console.log = noop;
+    console.warn = noop;
+    console.error = noop;
+    console.info = noop;
+    console.debug = noop;
+
+    // Use stdout directly to bypass silenced console
+    process.stdout.write(JSON.stringify({
+      success: result.success,
+      output: result.output || "",
+      ...(result.error && { error: result.error }),
+    }) + "\n");
+
+    if (!result.success) {
+      process.exit(1);
+    }
+    return;
+  }
 
   if (result.success) {
     // Output only the result for pipe-friendliness

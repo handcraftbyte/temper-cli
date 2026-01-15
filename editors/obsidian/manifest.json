@@ -1,0 +1,10 @@
+{
+  "id": "temper",
+  "name": "Temper",
+  "version": "0.1.0",
+  "minAppVersion": "1.0.0",
+  "description": "Run code snippets from your notes using the Temper CLI",
+  "author": "Temper",
+  "authorUrl": "https://tempercode.dev",
+  "isDesktopOnly": true
+}

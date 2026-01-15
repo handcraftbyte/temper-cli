@@ -1,58 +1,43 @@
-import { mkdir, writeFile } from "fs/promises";
-import { join } from "path";
 import { spawn } from "child_process";
-import { TemperApi } from "../lib/api";
-import { CONFIG, LANGUAGE_EXTENSIONS } from "../lib/config";
+import { LocalSnippets } from "../lib/local";
+import { CONFIG } from "../lib/config";
 
 interface EditOptions {
   language?: string;
   editor?: string;
 }
 
-export async function edit(slug: string, options: EditOptions): Promise<void> {
-  const api = new TemperApi();
+// Edit a local snippet or open snippets directory
+export async function edit(slug: string | undefined, options: EditOptions): Promise<void> {
+  // If no slug provided, open the snippets directory
+  if (!slug) {
+    const snippetsDir = CONFIG.snippetsDir.replace(/^~/, process.env.HOME || "");
+    console.log(`Opening snippets directory: ${snippetsDir}`);
+    openInEditor(snippetsDir, options.editor);
+    return;
+  }
+
+  const local = new LocalSnippets();
   const language = options.language || CONFIG.defaultLanguage;
 
-  // Fetch snippet
-  const snippet = await api.getSnippet(slug, language);
+  // Check if local snippet exists
+  const localPath = await local.getFilePath_public(slug, language);
 
-  if (!snippet) {
-    console.error(`Snippet not found: ${slug} (${language})`);
-    console.error("Try 'temper search <query>' to find available snippets.");
+  if (!localPath) {
+    console.error(`Local snippet not found: ${slug} (${language})`);
+    console.error("\nTo edit a public snippet, first clone it locally:");
+    console.error(`  temper clone ${slug}`);
+    console.error(`  temper edit ${slug}`);
     process.exit(1);
   }
 
-  // Ensure edit directory exists
-  await mkdir(CONFIG.editDir, { recursive: true });
+  // Open existing local snippet
+  console.log(`Opening: ${localPath}`);
+  openInEditor(localPath, options.editor);
+}
 
-  // Determine file extension
-  const ext = LANGUAGE_EXTENSIONS[snippet.language] || "txt";
-  const filename = `${slug}.${ext}`;
-  const filepath = join(CONFIG.editDir, filename);
-
-  // Build file content with header comment
-  const commentStyle = getCommentStyle(snippet.language);
-  const header = [
-    `${commentStyle.start}`,
-    `${commentStyle.line} Temper Snippet: ${snippet.title}`,
-    `${commentStyle.line} Slug: ${snippet.slug}`,
-    `${commentStyle.line} Language: ${snippet.language}`,
-    `${commentStyle.line}`,
-    `${commentStyle.line} ${snippet.description}`,
-    `${commentStyle.line}`,
-    `${commentStyle.line} Source: https://tempercode.dev/snippets/${snippet.slug}`,
-    `${commentStyle.end}`,
-    "",
-  ].join("\n");
-
-  const content = header + snippet.code;
-
-  // Write file
-  await writeFile(filepath, content);
-  console.log(`Snippet saved to: ${filepath}`);
-
-  // Open in editor
-  const editor = options.editor || CONFIG.defaultEditor;
+function openInEditor(filepath: string, editorOverride?: string): void {
+  const editor = editorOverride || CONFIG.defaultEditor;
   console.log(`Opening in ${editor}...`);
 
   const child = spawn(editor, [filepath], {
@@ -69,26 +54,7 @@ export async function edit(slug: string, options: EditOptions): Promise<void> {
   child.on("exit", (code) => {
     if (code === 0) {
       console.log(`\nFile saved at: ${filepath}`);
-      console.log(`Run with: bun ${filepath}`);
+      console.log(`Run with: temper run ${filepath.split("/").pop()?.replace(/\.\w+$/, "")}`);
     }
   });
-}
-
-interface CommentStyle {
-  start: string;
-  line: string;
-  end: string;
-}
-
-function getCommentStyle(language: string): CommentStyle {
-  switch (language) {
-    case "python":
-    case "ruby":
-    case "bash":
-      return { start: "#", line: "#", end: "#" };
-    case "php":
-      return { start: "<?php\n/*", line: " *", end: " */" };
-    default:
-      return { start: "/*", line: " *", end: " */" };
-  }
 }

@@ -1,0 +1,24 @@
+{
+  "name": "obsidian-temper",
+  "version": "0.1.0",
+  "description": "Temper plugin for Obsidian",
+  "main": "main.js",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "node esbuild.config.mjs production"
+  },
+  "keywords": [
+    "obsidian",
+    "obsidian-plugin",
+    "temper",
+    "snippets"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "builtin-modules": "^3.3.0",
+    "esbuild": "^0.19.0",
+    "obsidian": "^1.5.0",
+    "typescript": "^5.3.0"
+  }
+}

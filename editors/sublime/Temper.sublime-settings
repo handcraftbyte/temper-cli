@@ -1,0 +1,5 @@
+{
+    // Path to the temper CLI executable
+    // If temper is not in your PATH, use the full path
+    "cli_path": "temper"
+}

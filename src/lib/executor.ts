@@ -37,7 +37,7 @@ function isOneLiner(code: string): boolean {
   return true;
 }
 
-function parseStdin(stdin: string): { value: unknown; type: string } {
+export function parseStdin(stdin: string): { value: unknown; type: string } {
   const trimmed = stdin.trim();
 
   // Try parsing as JSON first
@@ -69,6 +69,53 @@ function parseStdin(stdin: string): { value: unknown; type: string } {
 
   // Default to string
   return { value: stdin, type: "string" };
+}
+
+/**
+ * Map stdin to the first matching parameter (for pre-validation)
+ */
+export function mapStdinToParams(
+  params: Record<string, unknown>,
+  parameters: Parameter[] | undefined,
+  stdin?: string
+): Record<string, unknown> {
+  if (stdin === undefined || !parameters?.length) {
+    return params;
+  }
+
+  const result = { ...params };
+  const { value: stdinValue, type: stdinType } = parseStdin(stdin);
+
+  // Find first parameter that matches the stdin type and wasn't explicitly set
+  const matchingParam = parameters.find(
+    p => p.type === stdinType && !(p.name in params)
+  );
+
+  if (matchingParam) {
+    result[matchingParam.name] = stdinValue;
+  } else {
+    // Fall back to first unset parameter of any type
+    const firstUnsetParam = parameters.find(p => !(p.name in params));
+    if (firstUnsetParam) {
+      // Coerce to expected type if possible
+      if (firstUnsetParam.type === "string") {
+        result[firstUnsetParam.name] = String(stdin);
+      } else if (firstUnsetParam.type === "number" && typeof stdinValue === "number") {
+        result[firstUnsetParam.name] = stdinValue;
+      } else if (firstUnsetParam.type === "array" && Array.isArray(stdinValue)) {
+        result[firstUnsetParam.name] = stdinValue;
+      } else if (firstUnsetParam.type === "object" && typeof stdinValue === "object") {
+        result[firstUnsetParam.name] = stdinValue;
+      } else if (firstUnsetParam.type === "boolean" && typeof stdinValue === "boolean") {
+        result[firstUnsetParam.name] = stdinValue;
+      } else {
+        // Last resort - use string representation
+        result[firstUnsetParam.name] = stdin;
+      }
+    }
+  }
+
+  return result;
 }
 
 export async function executeSnippet(

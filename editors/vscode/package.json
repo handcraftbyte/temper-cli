@@ -1,0 +1,76 @@
+{
+  "name": "temper",
+  "displayName": "Temper",
+  "description": "Insert and run code snippets from tempercode.dev",
+  "version": "0.1.0",
+  "publisher": "tempercode",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/handcraftbyte/temper-cli"
+  },
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Snippets",
+    "Other"
+  ],
+  "keywords": [
+    "snippets",
+    "code snippets",
+    "temper",
+    "utilities"
+  ],
+  "activationEvents": [],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "temper.runCurrentSnippet",
+        "title": "Temper: Run This Snippet"
+      },
+      {
+        "command": "temper.searchInsert",
+        "title": "Temper: Insert Snippet"
+      },
+      {
+        "command": "temper.runReplace",
+        "title": "Temper: Run Snippet (Replace Selection)"
+      },
+      {
+        "command": "temper.runInsertBelow",
+        "title": "Temper: Run Snippet (Insert Below)"
+      },
+      {
+        "command": "temper.runShowOutput",
+        "title": "Temper: Run Snippet (Show Output)"
+      },
+      {
+        "command": "temper.refreshCache",
+        "title": "Temper: Refresh Snippets"
+      }
+    ],
+    "configuration": {
+      "title": "Temper",
+      "properties": {
+        "temper.cliPath": {
+          "type": "string",
+          "default": "temper",
+          "description": "Path to the temper CLI executable"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.74.0",
+    "typescript": "^5.0.0",
+    "@vscode/vsce": "^2.22.0"
+  }
+}

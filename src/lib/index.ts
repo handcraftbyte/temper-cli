@@ -3,3 +3,4 @@ export * from "./config";
 export * from "./cache";
 export * from "./api";
 export * from "./executor";
+export * from "./local";

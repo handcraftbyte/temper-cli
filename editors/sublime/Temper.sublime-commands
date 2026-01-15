@@ -1,0 +1,26 @@
+[
+    {
+        "caption": "Temper: Run This Snippet",
+        "command": "temper_run_current_snippet"
+    },
+    {
+        "caption": "Temper: Insert Snippet",
+        "command": "temper_search_insert"
+    },
+    {
+        "caption": "Temper: Run Snippet (Replace Selection)",
+        "command": "temper_run_replace"
+    },
+    {
+        "caption": "Temper: Run Snippet (Insert Below)",
+        "command": "temper_run_insert_below"
+    },
+    {
+        "caption": "Temper: Run Snippet (Show Output)",
+        "command": "temper_run_show_output"
+    },
+    {
+        "caption": "Temper: Refresh Snippet Cache",
+        "command": "temper_refresh_cache"
+    }
+]

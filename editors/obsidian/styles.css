@@ -1,0 +1,163 @@
+/* Temper Obsidian Plugin Styles */
+
+/* Block container */
+.temper-block {
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  margin: 1em 0;
+  overflow: hidden;
+}
+
+/* Header */
+.temper-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: var(--background-secondary-alt);
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.temper-title {
+  font-weight: 600;
+  font-family: var(--font-monospace);
+  font-size: 0.9em;
+  color: var(--text-normal);
+}
+
+.temper-actions {
+  display: flex;
+  gap: 6px;
+}
+
+/* Buttons */
+.temper-btn {
+  background: var(--interactive-normal);
+  color: var(--text-normal);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  padding: 4px 10px;
+  cursor: pointer;
+  font-size: 0.8em;
+  transition: background 0.15s ease;
+}
+
+.temper-btn:hover {
+  background: var(--interactive-hover);
+}
+
+.temper-run-btn {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border: none;
+}
+
+.temper-run-btn:hover {
+  background: var(--interactive-accent-hover);
+}
+
+/* Input section */
+.temper-input {
+  padding: 12px;
+  border-bottom: 1px solid var(--background-modifier-border);
+  font-family: var(--font-monospace);
+  font-size: 0.85em;
+  white-space: pre-wrap;
+  background: var(--background-primary);
+}
+
+.temper-params {
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.temper-stdin {
+  color: var(--text-normal);
+}
+
+/* Output section */
+.temper-output {
+  padding: 12px;
+  font-family: var(--font-monospace);
+  font-size: 0.85em;
+  white-space: pre-wrap;
+  max-height: 400px;
+  overflow-y: auto;
+  background: var(--background-primary);
+}
+
+.temper-output-empty {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.temper-output-loading {
+  color: var(--text-muted);
+}
+
+.temper-output-error {
+  color: var(--text-error);
+}
+
+/* Code section (for embed blocks) */
+.temper-code {
+  padding: 12px;
+  font-family: var(--font-monospace);
+  font-size: 0.85em;
+  background: var(--background-primary);
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.temper-code pre {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+}
+
+.temper-code code {
+  display: block;
+  white-space: pre;
+  color: var(--text-normal);
+}
+
+.temper-code-loading,
+.temper-code-empty {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.temper-code-error {
+  color: var(--text-error);
+}
+
+/* Snippet picker modal */
+.temper-suggestion {
+  padding: 4px 0;
+}
+
+.temper-suggestion-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.temper-suggestion-slug {
+  font-family: var(--font-monospace);
+  font-weight: 600;
+}
+
+.temper-suggestion-local {
+  font-size: 0.75em;
+  color: var(--text-muted);
+  background: var(--background-secondary);
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.temper-suggestion-desc {
+  font-size: 0.85em;
+  color: var(--text-muted);
+  margin-top: 2px;
+}

@@ -1,0 +1,34 @@
+[
+    {
+        "id": "tools",
+        "children": [
+            {
+                "caption": "-"
+            },
+            {
+                "caption": "Temper",
+                "children": [
+                    {
+                        "caption": "Insert Snippet",
+                        "command": "temper_search_insert"
+                    },
+                    {
+                        "caption": "-"
+                    },
+                    {
+                        "caption": "Run Snippet (Replace Selection)",
+                        "command": "temper_run_replace"
+                    },
+                    {
+                        "caption": "Run Snippet (Insert Below)",
+                        "command": "temper_run_insert_below"
+                    },
+                    {
+                        "caption": "Run Snippet (Show Output)",
+                        "command": "temper_run_show_output"
+                    }
+                ]
+            }
+        ]
+    }
+]

@@ -5,10 +5,15 @@ import { run } from "../src/commands/run";
 import { search, list } from "../src/commands/search";
 import { info } from "../src/commands/info";
 import { edit } from "../src/commands/edit";
+import { clone } from "../src/commands/clone";
 import { open } from "../src/commands/open";
+import { add } from "../src/commands/add";
+import { remove } from "../src/commands/remove";
+import { showConfig } from "../src/commands/config";
+import { mcp } from "../src/commands/mcp";
 import { SnippetCache } from "../src/lib/cache";
 
-const VERSION = "0.1.0";
+const VERSION = "0.2.0";
 
 const HELP = `
 temper - Homebrew for code snippets
@@ -17,32 +22,43 @@ USAGE
   temper <command> [options]
 
 COMMANDS
-  run <slug>      Execute a JavaScript snippet
-  search <query>  Search for snippets
-  list            List all available snippets
-  info <slug>     Show detailed snippet information
-  edit <slug>     Download snippet and open in editor
-  open <slug>     Open snippet in browser
+  search [query]  Search public gallery (or list all)
+  list            List local snippets
+  run <slug>      Execute a snippet (local first, then public)
+  info <slug>     Show snippet details (local first, then public)
+  clone <slug>    Copy public snippet to local library
+  edit [slug]     Edit local snippet (or open snippets directory)
+  add <slug>      Create new local snippet
+  remove <slug>   Remove local snippet
+  open <slug>     Open public snippet in browser
   cache           Manage local cache
+  config          Show current configuration
+  mcp             Start MCP server for AI agents
 
 OPTIONS
-  -l, --language <lang>  Language for info/edit/open (default: javascript)
+  -l, --language <lang>  Language variant (default: javascript)
+  -f, --force            Force overwrite for clone
   -h, --help             Show help
   -v, --version          Show version
 
 EXAMPLES
-  temper run generate-uuid
+  temper search "sort array"
+  temper clone quick-sort
+  temper edit quick-sort
+  temper run quick-sort
   temper run fibonacci --n=10
   echo "hello world" | temper run title-case
-  temper search "sort array"
-  temper info quick-sort
-  temper open generate-uuid
-  temper edit quick-sort -l python
+  temper list
+  temper add my-helper
 
-ENVIRONMENT
-  EDITOR              Editor for 'temper edit' (default: vim)
-  TEMPER_API_URL      API base URL (default: https://tempercode.dev)
-  TEMPER_CACHE_DIR    Cache directory (default: ~/.temper/cache)
+CONFIGURATION
+  ~/.temper/config.json (or TEMPER_CONFIG)
+
+  {
+    "snippetsDir": "~/Snippets",
+    "cacheDir": "~/.temper/cache",
+    "apiBaseUrl": "https://tempercode.dev"
+  }
 
 Learn more: https://tempercode.dev
 `;
@@ -92,6 +108,8 @@ async function main() {
       type: { type: "string", short: "t" },
       limit: { type: "string" },
       clear: { type: "boolean" },
+      json: { type: "boolean" },
+      force: { type: "boolean", short: "f" },
     },
     allowPositionals: true,
     strict: false, // Allow unknown options (for snippet params like --n=10)
@@ -128,22 +146,19 @@ async function main() {
       await run(slug, {
         params: customParams,
         stdin,
+        json: values.json,
       });
       break;
     }
 
     case "search": {
-      const query = rest.join(" ");
-      if (!query) {
-        console.error("Usage: temper search <query>");
-        console.error("Example: temper search 'sort array'");
-        process.exit(1);
-      }
+      const query = rest.join(" ") || undefined;
 
       await search(query, {
         language: values.language,
         type: values.type,
         limit: values.limit ? parseInt(values.limit, 10) : undefined,
+        json: values.json,
       });
       break;
     }
@@ -153,6 +168,21 @@ async function main() {
         language: values.language,
         type: values.type,
         limit: values.limit ? parseInt(values.limit, 10) : undefined,
+        json: values.json,
+      });
+      break;
+    }
+
+    case "clone": {
+      if (!slug) {
+        console.error("Usage: temper clone <slug> [-l language]");
+        console.error("Example: temper clone quick-sort");
+        process.exit(1);
+      }
+
+      await clone(slug, {
+        language: values.language,
+        force: values.force,
       });
       break;
     }
@@ -166,17 +196,12 @@ async function main() {
 
       await info(slug, {
         language: values.language,
+        json: values.json,
       });
       break;
     }
 
     case "edit": {
-      if (!slug) {
-        console.error("Usage: temper edit <slug> [-l language]");
-        console.error("Example: temper edit sort-array -l ruby");
-        process.exit(1);
-      }
-
       await edit(slug, {
         language: values.language,
         editor: values.editor,
@@ -192,6 +217,34 @@ async function main() {
       }
 
       await open(slug, { language: values.language });
+      break;
+    }
+
+    case "add": {
+      if (!slug) {
+        console.error("Usage: temper add <slug> [-l language]");
+        console.error("Example: temper add my-helper");
+        process.exit(1);
+      }
+
+      await add(slug, {
+        language: values.language,
+        editor: values.editor,
+      });
+      break;
+    }
+
+    case "remove": {
+      if (!slug) {
+        console.error("Usage: temper remove <slug> [-l language]");
+        console.error("Example: temper remove my-helper");
+        process.exit(1);
+      }
+
+      await remove(slug, {
+        language: values.language,
+        force: values.force,
+      });
       break;
     }
 
@@ -213,6 +266,16 @@ async function main() {
       } else {
         console.log("Usage: temper cache <list|clear>");
       }
+      break;
+    }
+
+    case "config": {
+      await showConfig({ json: values.json });
+      break;
+    }
+
+    case "mcp": {
+      await mcp();
       break;
     }
 
