@@ -5,7 +5,7 @@ set -e
 # Usage: curl -fsSL https://tempercode.dev/install.sh | bash
 
 REPO="handcraftbyte/temper-cli"
-INSTALL_DIR="${TEMPER_INSTALL_DIR:-$HOME/.temper/bin}"
+INSTALL_DIR="${TEMPER_INSTALL_DIR:-/usr/local/bin}"
 BASE_URL="https://github.com/$REPO/releases/latest/download"
 
 # Colors
@@ -64,45 +64,21 @@ info "Detected: $OS-$ARCH"
 info "Downloading from: $DOWNLOAD_URL"
 
 # Create install directory
-mkdir -p "$INSTALL_DIR"
+sudo mkdir -p "$INSTALL_DIR"
 
-# Download binary
+# Download binary to temp location first, then move with sudo
+TEMP_FILE=$(mktemp)
 if command -v curl &> /dev/null; then
-  curl -fsSL "$DOWNLOAD_URL" -o "$INSTALL_DIR/$TARGET_NAME"
+  curl -fsSL "$DOWNLOAD_URL" -o "$TEMP_FILE"
 elif command -v wget &> /dev/null; then
-  wget -q "$DOWNLOAD_URL" -O "$INSTALL_DIR/$TARGET_NAME"
+  wget -q "$DOWNLOAD_URL" -O "$TEMP_FILE"
 else
   error "Neither curl nor wget found. Please install one of them."
 fi
 
-# Make executable
-chmod +x "$INSTALL_DIR/$TARGET_NAME"
+# Move to install directory with sudo
+sudo mv "$TEMP_FILE" "$INSTALL_DIR/$TARGET_NAME"
+sudo chmod +x "$INSTALL_DIR/$TARGET_NAME"
 
 success "Installed temper to $INSTALL_DIR/$TARGET_NAME"
-
-# Check if in PATH
-if [[ ":$PATH:" != *":$INSTALL_DIR:"* ]]; then
-  echo ""
-  info "Add temper to your PATH by adding this to your shell config:"
-  echo ""
-  echo "  export PATH=\"$INSTALL_DIR:\$PATH\""
-  echo ""
-
-  # Detect shell and suggest config file
-  SHELL_NAME=$(basename "$SHELL")
-  case "$SHELL_NAME" in
-    bash)
-      echo "  # Add to ~/.bashrc or ~/.bash_profile"
-      ;;
-    zsh)
-      echo "  # Add to ~/.zshrc"
-      ;;
-    fish)
-      echo "  # Or for fish, run:"
-      echo "  fish_add_path $INSTALL_DIR"
-      ;;
-  esac
-  echo ""
-fi
-
 success "Installation complete! Run 'temper --help' to get started."

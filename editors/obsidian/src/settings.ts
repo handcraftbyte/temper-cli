@@ -9,7 +9,7 @@ export interface TemperSettings {
 // Obsidian subprocess doesn't inherit shell PATH, so use full path
 const HOME = process.env.HOME || "";
 export const DEFAULT_SETTINGS: TemperSettings = {
-  cliPath: `${HOME}/.temper/bin/temper`,
+  cliPath: "/usr/local/bin/temper",
   snippetsDir: `${HOME}/Snippets`,
 };
 
